@@ -27,6 +27,8 @@ func NewServer(cardSvc *card.Service, mux *http.ServeMux) *Server {
 func (s *Server) Init() {
 	s.mux.HandleFunc("/getCards", s.getCards)
 	s.mux.HandleFunc("/getTransactions", s.getTransactions)
+	s.mux.HandleFunc("/mostPopularPlace", s.mostPopularPlace)
+	s.mux.HandleFunc("/biggestSpending", s.biggestSpending)
 }
 
 func (s *Server) getCards(w http.ResponseWriter, r *http.Request) {
@@ -163,6 +165,99 @@ func (s *Server) getTransactions(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
+}
 
+func (s *Server) mostPopularPlace(w http.ResponseWriter, r *http.Request)  {
+	place, err := postgreSQL.MostPopularPlace()
+	if (err != nil) {
+		log.Println(err)
+		return
+	}
 
+	if (place == nil) {
+		w.WriteHeader(404)
+		dtos := "Something went wrong..."
+		respBody, _ := json.Marshal(dtos)
+		w.Header().Add("Content-Type", "text/plain")
+		_, err = w.Write(respBody)
+		log.Println(errors.New(dtos))
+		return
+	}
+
+	dto := dto.MostVisitingPlaceDTO{
+		Place: &transaction.PopularPlace{
+			MCC:           place.MCC,
+			CountOfVisits: place.CountOfVisits,
+			NameOfPlace:   findNameOfMCC(place.MCC),
+		},
+	}
+
+	respBody, err := json.Marshal(dto)
+	if err != nil {
+		w.WriteHeader(404)
+		log.Println(err)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	_, err = w.Write(respBody)
+	if err != nil {
+		w.WriteHeader(404)
+		log.Println(err)
+		return
+	}
+}
+
+func findNameOfMCC(mcc int64) string {
+	var mccName string
+	switch mcc {
+	case 5050:
+		mccName = "Grocery"
+	case 5010:
+		mccName = "Bar"
+	default:
+		mccName = "Other"
+	}
+	return mccName
+}
+
+func (s *Server) biggestSpending(w http.ResponseWriter, r *http.Request)  {
+	spending, err := postgreSQL.BiggestSpendings()
+	if (err != nil) {
+		log.Println(err)
+		return
+	}
+
+	if (spending == nil) {
+		w.WriteHeader(404)
+		dtos := "Something went wrong..."
+		respBody, _ := json.Marshal(dtos)
+		w.Header().Add("Content-Type", "text/plain")
+		_, err = w.Write(respBody)
+		log.Println(errors.New(dtos))
+		return
+	}
+
+	dto := dto.BiggestSpendings{
+		Spending: &transaction.BiggestSpending{
+			MCC:         spending.MCC,
+			Amount:      spending.Amount,
+			NameOfPlace: findNameOfMCC(spending.MCC),
+		},
+	}
+
+	respBody, err := json.Marshal(dto)
+	if err != nil {
+		w.WriteHeader(404)
+		log.Println(err)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	_, err = w.Write(respBody)
+	if err != nil {
+		w.WriteHeader(404)
+		log.Println(err)
+		return
+	}
 }

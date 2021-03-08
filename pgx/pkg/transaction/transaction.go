@@ -11,6 +11,18 @@ type Transaction struct {
 	Receiver string `json:"receiver"`
 }
 
+type PopularPlace struct {
+	MCC int64`json:"mcc"`
+	CountOfVisits int64 `json:"count_of_visits"`
+	NameOfPlace string `json:"name_of_place"`
+}
+
+type BiggestSpending struct {
+	MCC int64`json:"mcc"`
+	Amount int64 `json:"amount"`
+	NameOfPlace string `json:"name_of_place"`
+}
+
 
 
 

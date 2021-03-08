@@ -105,3 +105,59 @@ func GetTransactions(CardId int64) ([]*transaction.Transaction, error){
 	return transactions, nil
 }
 
+func MostPopularPlace() (*transaction.PopularPlace, error){ // mcc, count, err
+	dsn := "postgres://app:pass@localhost:5432/db"
+	ctx := context.Background()
+	pool, err := pgxpool.Connect(ctx, dsn)
+	if (err != nil) {
+		log.Println(err)
+		return nil, err
+	}
+	defer pool.Close()
+
+	conn, err := pool.Acquire(ctx)
+	if (err != nil) {
+		log.Println(err)
+		return nil, err
+	}
+	defer conn.Release()
+
+	place := &transaction.PopularPlace{}
+	err = conn.QueryRow(ctx, `SELECT mcc, count(*) OthenVisitingPlaces FROM transactions
+	GROUP BY mcc ORDER BY OthenVisitingPlaces DESC LIMIT 1`).Scan(&place.MCC, &place.CountOfVisits)
+	if (err != nil) {
+		log.Println(err)
+		return nil, err
+	}
+
+	return place, nil
+}
+
+func BiggestSpendings() (*transaction.BiggestSpending, error) {
+	dsn := "postgres://app:pass@localhost:5432/db"
+	ctx := context.Background()
+	pool, err := pgxpool.Connect(ctx, dsn)
+	if (err != nil) {
+		log.Println(err)
+		return nil, err
+	}
+	defer pool.Close()
+
+	conn, err := pool.Acquire(ctx)
+	if (err != nil) {
+		log.Println(err)
+		return nil, err
+	}
+	defer conn.Release()
+
+	spending := &transaction.BiggestSpending{}
+	err = conn.QueryRow(ctx, `SELECT mcc, sum(sum) total FROM transactions 
+	GROUP BY mcc ORDER BY total DESC LIMIT 1`).Scan(&spending.MCC, &spending.Amount)
+	if (err != nil) {
+		log.Println(err)
+		return nil, err
+	}
+
+	return spending, nil
+}
+

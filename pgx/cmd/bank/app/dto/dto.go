@@ -15,6 +15,16 @@ type TransactionDTO struct {
 	Transaction transaction.Transaction `json:"transaction"`
 }
 
+type MostVisitingPlaceDTO struct {
+	Error *Error `json:"error"`
+	Place *transaction.PopularPlace `json:"place"`
+}
+
+type BiggestSpendings struct {
+	Error *Error `json:"error"`
+	Spending *transaction.BiggestSpending `json:"spending"`
+}
+
 type Error struct {
 	Code int `json:"error_code"`
 	Message string `json:"error_msg"`

@@ -25,7 +25,13 @@ INSERT INTO transactions(card_id, sum, mcc, receiver)
 VALUES (2, 100000, 5010, '-3959'),
        (2, 100000, 5090, NULL),
        (2, 100000, 5050, 'shop-pay'),
-       (2, 5000000, 5000, '-1473')
+       (2, 500000, 5000, '-1473'),
+       (2, 400000, 5050, 'shop-pay'),
+       (2, 250000, 5050, 'shop-pay'),
+       (2, 1500099, 5010, 'bar')
 ;
 
 UPDATE cards SET balance = balance + 4700000 WHERE id = 2;
+
+
+
