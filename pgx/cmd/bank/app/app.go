@@ -7,6 +7,7 @@ import (
 	"github.com/Geniuskaa/task12.1_BGO-3/pkg/card"
 	"github.com/Geniuskaa/task12.1_BGO-3/pkg/postgreSQL"
 	"github.com/Geniuskaa/task12.1_BGO-3/pkg/transaction"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
 	"net/http"
 	"strconv"
@@ -15,12 +16,15 @@ import (
 type Server struct {
 	cardSvc *card.Service
 	mux *http.ServeMux
+	pool *pgxpool.Pool
 }
 
-func NewServer(cardSvc *card.Service, mux *http.ServeMux) *Server {
+func NewServer(cardSvc *card.Service, mux *http.ServeMux, pool *pgxpool.Pool) *Server {
+
 	return &Server{
 		cardSvc: cardSvc,
 		mux:     mux,
+		pool: pool,
 	}
 }
 
@@ -40,7 +44,7 @@ func (s *Server) getCards(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cards, err := postgreSQL.GetCards(int64(id))
+	cards, err := postgreSQL.GetCards(int64(id), s.pool)
 	if err != nil {
 		log.Println(err)
 		return
@@ -109,7 +113,7 @@ func (s *Server) getTransactions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	transactions, err := postgreSQL.GetTransactions(int64(id))
+	transactions, err := postgreSQL.GetTransactions(int64(id), s.pool)
 	if err != nil {
 		log.Println(err)
 		return
@@ -168,7 +172,7 @@ func (s *Server) getTransactions(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) mostPopularPlace(w http.ResponseWriter, r *http.Request)  {
-	place, err := postgreSQL.MostPopularPlace()
+	place, err := postgreSQL.MostPopularPlace(s.pool)
 	if (err != nil) {
 		log.Println(err)
 		return
@@ -222,7 +226,7 @@ func findNameOfMCC(mcc int64) string {
 }
 
 func (s *Server) biggestSpending(w http.ResponseWriter, r *http.Request)  {
-	spending, err := postgreSQL.BiggestSpendings()
+	spending, err := postgreSQL.BiggestSpendings(s.pool)
 	if (err != nil) {
 		log.Println(err)
 		return

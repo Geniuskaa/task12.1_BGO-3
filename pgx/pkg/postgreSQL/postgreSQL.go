@@ -15,16 +15,9 @@ type Client struct {
 	Birthday time.Time
 }
 
-func GetCards(OwnerId int64) ([]*card.Card, error){
-	dsn := "postgres://app:pass@localhost:5432/db"
-	ctx := context.Background()
-	pool, err := pgxpool.Connect(ctx, dsn)
-	if (err != nil) {
-		log.Println(err)
-		return nil, err
-	}
-	defer pool.Close()
+func GetCards(OwnerId int64, pool *pgxpool.Pool) ([]*card.Card, error){
 
+	ctx := context.Background()
 	conn, err := pool.Acquire(ctx)
 	if (err != nil) {
 		log.Println(err)
@@ -60,16 +53,9 @@ func GetCards(OwnerId int64) ([]*card.Card, error){
 	return cards, nil
 }
 
-func GetTransactions(CardId int64) ([]*transaction.Transaction, error){
-	dsn := "postgres://app:pass@localhost:5432/db"
-	ctx := context.Background()
-	pool, err := pgxpool.Connect(ctx, dsn)
-	if (err != nil) {
-		log.Println(err)
-		return nil, err
-	}
-	defer pool.Close()
+func GetTransactions(CardId int64, pool *pgxpool.Pool) ([]*transaction.Transaction, error){
 
+	ctx := context.Background()
 	conn, err := pool.Acquire(ctx)
 	if (err != nil) {
 		log.Println(err)
@@ -105,16 +91,9 @@ func GetTransactions(CardId int64) ([]*transaction.Transaction, error){
 	return transactions, nil
 }
 
-func MostPopularPlace() (*transaction.PopularPlace, error){ // mcc, count, err
-	dsn := "postgres://app:pass@localhost:5432/db"
-	ctx := context.Background()
-	pool, err := pgxpool.Connect(ctx, dsn)
-	if (err != nil) {
-		log.Println(err)
-		return nil, err
-	}
-	defer pool.Close()
+func MostPopularPlace(pool *pgxpool.Pool) (*transaction.PopularPlace, error){ // mcc, count, err
 
+	ctx := context.Background()
 	conn, err := pool.Acquire(ctx)
 	if (err != nil) {
 		log.Println(err)
@@ -133,16 +112,9 @@ func MostPopularPlace() (*transaction.PopularPlace, error){ // mcc, count, err
 	return place, nil
 }
 
-func BiggestSpendings() (*transaction.BiggestSpending, error) {
-	dsn := "postgres://app:pass@localhost:5432/db"
-	ctx := context.Background()
-	pool, err := pgxpool.Connect(ctx, dsn)
-	if (err != nil) {
-		log.Println(err)
-		return nil, err
-	}
-	defer pool.Close()
+func BiggestSpendings(pool *pgxpool.Pool) (*transaction.BiggestSpending, error) {
 
+	ctx := context.Background()
 	conn, err := pool.Acquire(ctx)
 	if (err != nil) {
 		log.Println(err)
