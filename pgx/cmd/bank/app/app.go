@@ -41,16 +41,18 @@ func (s *Server) getCards(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(value1[0])
 	if err != nil {
 		log.Println(err)
+		w.WriteHeader(404)
 		return
 	}
 
 	cards, err := postgreSQL.GetCards(int64(id), s.pool)
 	if err != nil {
 		log.Println(err)
+		w.WriteHeader(404)
 		return
 	}
 
-	if (len(cards) == 0) {
+	if len(cards) == 0 {
 		w.WriteHeader(404)
 		dtos := "There are not any cardHolders with this ID."
 		respBody, _ := json.Marshal(dtos)
@@ -108,18 +110,19 @@ func (s *Server) getTransactions(w http.ResponseWriter, r *http.Request) {
 	unParsedId := mapWithValues["id"]
 	id, err := strconv.Atoi(unParsedId[0])
 	if err != nil {
-		w.WriteHeader(404)
 		log.Println(err)
+		w.WriteHeader(404)
 		return
 	}
 
 	transactions, err := postgreSQL.GetTransactions(int64(id), s.pool)
 	if err != nil {
 		log.Println(err)
+		w.WriteHeader(404)
 		return
 	}
 
-	if (len(transactions) == 0) {
+	if len(transactions) == 0 {
 		w.WriteHeader(404)
 		dtos := "There are not any cardHolders with this ID."
 		respBody, _ := json.Marshal(dtos)
@@ -172,13 +175,23 @@ func (s *Server) getTransactions(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) mostPopularPlace(w http.ResponseWriter, r *http.Request)  {
-	place, err := postgreSQL.MostPopularPlace(s.pool)
-	if (err != nil) {
+	mapWithValues := r.URL.Query()
+	value := mapWithValues["id"]
+	id, err := strconv.Atoi(value[0])
+	if err != nil {
 		log.Println(err)
+		w.WriteHeader(404)
 		return
 	}
 
-	if (place == nil) {
+	place, err := postgreSQL.MostPopularPlace(s.pool, int64(id))
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(404)
+		return
+	}
+
+	if place == nil {
 		w.WriteHeader(404)
 		dtos := "Something went wrong..."
 		respBody, _ := json.Marshal(dtos)
@@ -226,13 +239,23 @@ func findNameOfMCC(mcc int64) string {
 }
 
 func (s *Server) biggestSpending(w http.ResponseWriter, r *http.Request)  {
-	spending, err := postgreSQL.BiggestSpendings(s.pool)
-	if (err != nil) {
+	mapWithValues := r.URL.Query()
+	value := mapWithValues["id"]
+	id, err := strconv.Atoi(value[0])
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(404)
+		return
+	}
+
+	spending, err := postgreSQL.BiggestSpendings(s.pool, int64(id))
+	if err != nil {
+		w.WriteHeader(404)
 		log.Println(err)
 		return
 	}
 
-	if (spending == nil) {
+	if spending == nil {
 		w.WriteHeader(404)
 		dtos := "Something went wrong..."
 		respBody, _ := json.Marshal(dtos)

@@ -11,13 +11,13 @@ POST http://localhost:9999/getTransactions?id=2 HTTP/1.1
 // Данный запрос пришлёт 1 структуру состоящую из MCC транзакции, максимального колличества
 // посещений этого места среди структур с разными MCC, а также названия этого места
 ###
-POST http://localhost:9999/mostPopularPlace HTTP/1.1
+POST http://localhost:9999/mostPopularPlace?id=2 HTTP/1.1
 
 
 // Данный запрос пришлёт 1 структуру состоящую из MCC транзакции,
 // самой большой суммы среди структур с разными MCC и названием места
 ###
-POST http://localhost:9999/biggestSpending HTTP/1.1
+POST http://localhost:9999/biggestSpending?id=2 HTTP/1.1
 
 
 

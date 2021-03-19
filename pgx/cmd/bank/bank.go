@@ -39,7 +39,7 @@ func execute(addr string) (err error) {
 	dsn := "postgres://app:pass@localhost:5432/db"
 	ctx := context.Background()
 	pool, err := pgxpool.Connect(ctx, dsn)
-	if (err != nil) {
+	if err != nil {
 		log.Println(err)
 		return err
 	}
