@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"github.com/Geniuskaa/task12.1_BGO-3/cmd/bank/app"
 	"github.com/Geniuskaa/task12.1_BGO-3/pkg/card"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
 	"net"
 	"net/http"
@@ -34,9 +36,18 @@ func main() {
 
 
 func execute(addr string) (err error) {
+	dsn := "postgres://app:pass@localhost:5432/db"
+	ctx := context.Background()
+	pool, err := pgxpool.Connect(ctx, dsn)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	defer pool.Close()
+
 	cardSvc := card.NewService()
 	mux := http.NewServeMux()
-	application := app.NewServer(cardSvc, mux)
+	application := app.NewServer(cardSvc, mux, pool)
 	application.Init()
 
 	server := &http.Server{

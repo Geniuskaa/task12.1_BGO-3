@@ -15,18 +15,11 @@ type Client struct {
 	Birthday time.Time
 }
 
-func GetCards(OwnerId int64) ([]*card.Card, error){
-	dsn := "postgres://app:pass@localhost:5432/db"
-	ctx := context.Background()
-	pool, err := pgxpool.Connect(ctx, dsn)
-	if (err != nil) {
-		log.Println(err)
-		return nil, err
-	}
-	defer pool.Close()
+func GetCards(OwnerId int64, pool *pgxpool.Pool) ([]*card.Card, error){
 
+	ctx := context.Background()
 	conn, err := pool.Acquire(ctx)
-	if (err != nil) {
+	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
@@ -35,7 +28,7 @@ func GetCards(OwnerId int64) ([]*card.Card, error){
 	cards := make([]*card.Card, 0)
 	rows, err := conn.Query(ctx, `
 		SELECT id, number, balance, issuer, holder, status FROM cards WHERE owner_id = $1 LIMIT 5`, OwnerId)
-	if (err != nil) {
+	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
@@ -44,7 +37,7 @@ func GetCards(OwnerId int64) ([]*card.Card, error){
 	for rows.Next() {
 		card := &card.Card{}
 		err = rows.Scan(&card.CardId, &card.Number, &card.Balance, &card.Issuer, &card.Holder, &card.Status)
-		if (err != nil) {
+		if err != nil {
 			log.Println(err)
 			return nil, err
 		}
@@ -52,7 +45,7 @@ func GetCards(OwnerId int64) ([]*card.Card, error){
 		cards = append(cards, card)
 	}
 	err = rows.Err()
-	if (err != nil) {
+	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
@@ -60,18 +53,11 @@ func GetCards(OwnerId int64) ([]*card.Card, error){
 	return cards, nil
 }
 
-func GetTransactions(CardId int64) ([]*transaction.Transaction, error){
-	dsn := "postgres://app:pass@localhost:5432/db"
-	ctx := context.Background()
-	pool, err := pgxpool.Connect(ctx, dsn)
-	if (err != nil) {
-		log.Println(err)
-		return nil, err
-	}
-	defer pool.Close()
+func GetTransactions(CardId int64, pool *pgxpool.Pool) ([]*transaction.Transaction, error){
 
+	ctx := context.Background()
 	conn, err := pool.Acquire(ctx)
-	if (err != nil) {
+	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
@@ -80,7 +66,7 @@ func GetTransactions(CardId int64) ([]*transaction.Transaction, error){
 	transactions := make([]*transaction.Transaction, 0)
 	rows, err := conn.Query(ctx, `
 		SELECT id, sum, mcc, receiver, created FROM transactions WHERE card_id = $1 LIMIT 10`, CardId)
-	if (err != nil) {
+	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
@@ -89,7 +75,7 @@ func GetTransactions(CardId int64) ([]*transaction.Transaction, error){
 	for rows.Next() {
 		transaction := &transaction.Transaction{}
 		err = rows.Scan(&transaction.Id, &transaction.Amount, &transaction.MCC, &transaction.Receiver, &transaction.Date)
-		if (err != nil) {
+		if err != nil {
 			log.Println(err)
 			return nil, err
 		}
@@ -97,7 +83,7 @@ func GetTransactions(CardId int64) ([]*transaction.Transaction, error){
 		transactions = append(transactions, transaction)
 	}
 	err = rows.Err()
-	if (err != nil) {
+	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
@@ -105,27 +91,20 @@ func GetTransactions(CardId int64) ([]*transaction.Transaction, error){
 	return transactions, nil
 }
 
-func MostPopularPlace() (*transaction.PopularPlace, error){ // mcc, count, err
-	dsn := "postgres://app:pass@localhost:5432/db"
-	ctx := context.Background()
-	pool, err := pgxpool.Connect(ctx, dsn)
-	if (err != nil) {
-		log.Println(err)
-		return nil, err
-	}
-	defer pool.Close()
+func MostPopularPlace(pool *pgxpool.Pool, id int64) (*transaction.PopularPlace, error){ // mcc, count, err
 
+	ctx := context.Background()
 	conn, err := pool.Acquire(ctx)
-	if (err != nil) {
+	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 	defer conn.Release()
 
 	place := &transaction.PopularPlace{}
-	err = conn.QueryRow(ctx, `SELECT mcc, count(*) OthenVisitingPlaces FROM transactions
-	GROUP BY mcc ORDER BY OthenVisitingPlaces DESC LIMIT 1`).Scan(&place.MCC, &place.CountOfVisits)
-	if (err != nil) {
+	err = conn.QueryRow(ctx, `SELECT mcc, count(*) OthenVisitingPlaces FROM transactions WHERE card_id = $1
+	GROUP BY mcc ORDER BY OthenVisitingPlaces DESC LIMIT 1`, id).Scan(&place.MCC, &place.CountOfVisits)
+	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
@@ -133,27 +112,20 @@ func MostPopularPlace() (*transaction.PopularPlace, error){ // mcc, count, err
 	return place, nil
 }
 
-func BiggestSpendings() (*transaction.BiggestSpending, error) {
-	dsn := "postgres://app:pass@localhost:5432/db"
-	ctx := context.Background()
-	pool, err := pgxpool.Connect(ctx, dsn)
-	if (err != nil) {
-		log.Println(err)
-		return nil, err
-	}
-	defer pool.Close()
+func BiggestSpendings(pool *pgxpool.Pool, id int64) (*transaction.BiggestSpending, error) {
 
+	ctx := context.Background()
 	conn, err := pool.Acquire(ctx)
-	if (err != nil) {
+	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 	defer conn.Release()
 
 	spending := &transaction.BiggestSpending{}
-	err = conn.QueryRow(ctx, `SELECT mcc, sum(sum) total FROM transactions 
-	GROUP BY mcc ORDER BY total DESC LIMIT 1`).Scan(&spending.MCC, &spending.Amount)
-	if (err != nil) {
+	err = conn.QueryRow(ctx, `SELECT mcc, sum(sum) total FROM transactions WHERE card_id = $1 
+	GROUP BY mcc ORDER BY total DESC LIMIT 1`, id).Scan(&spending.MCC, &spending.Amount)
+	if err != nil {
 		log.Println(err)
 		return nil, err
 	}

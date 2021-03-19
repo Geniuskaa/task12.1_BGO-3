@@ -22,7 +22,7 @@ CREATE TABLE cards
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE iconsForTransactions
+CREATE TABLE icons_for_transactions
 (
     mcc BIGINT NOT NULL UNIQUE PRIMARY KEY,
     icon TEXT NOT NULL UNIQUE,
@@ -34,7 +34,8 @@ CREATE TABLE transactions
     id BIGSERIAL NOT NULL PRIMARY KEY,
     card_id BIGINT NOT NULL REFERENCES cards,
     sum BIGINT NOT NULL,
-    mcc BIGINT NOT NULL REFERENCES iconsfortransactions,
+    mcc BIGINT NOT NULL REFERENCES icons_for_transactions,
     receiver TEXT DEFAULT 'CardHolder',
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
